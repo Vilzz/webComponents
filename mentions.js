@@ -42,21 +42,33 @@ class CustomInput extends HTMLElement {
     this.attachShadow({ mode: 'open' })
   }
   connectedCallback() {
-    // const editable = this.getAttribute('contenteditable')
     this.shadowRoot.appendChild(mentionsTemplate.content.cloneNode(true))
-    this.input = this.shadowRoot.querySelector('.input')
+    const input = this.shadowRoot.querySelector('.input')
+    const span = document.createElement('span')
+    const range = document.createRange()
+    const selection = window.getSelection()
+    selection.removeAllRanges()
+
     const observer = new MutationObserver(function (mutations) {
       mutations.forEach((mutation) => {
-        console.log(mutation, mutation.target.textContent)
+        span.innerHTML = mutation.target.textContent
+        input.innerHTML = null
+        input.appendChild(span)
+        const nodes = input.childNodes
+        const start = nodes[0]
+        const end = nodes[nodes.length - 1]
+        range.setStartBefore(start)
+        range.setEndAfter(end)
+        range.collapse(false)
+        selection.removeAllRanges()
+        selection.addRange(range)
+        selection.collapseToEnd()
+        //input.focus()
+        console.log(range, selection)
       })
     })
-    // this.input.addEventListener('focusin', (event) => {
-    //   console.log(event)
-    // })
-    // this.input.addEventListener('focusout', (event) => {
-    //   console.log(event)
-    // })
-    observer.observe(this.input, { attributes: true, characterData: true, subtree: true })
+
+    observer.observe(input, { attributes: true, characterData: true, subtree: true })
   }
   static get observedAttributes() {
     return ['contenteditable']
